@@ -14,7 +14,7 @@ Uses the mvdan/sh interpreter (Bash-compatible on all platforms incl. Windows). 
 
 <usage_notes>
 - `command` required, `working_dir` optional (defaults to current directory).
-- IMPORTANT: Use Grep/Glob/Agent instead of 'find'/'grep'. Use View/LS instead of 'cat'/'head'/'tail'/'ls'.
+- IMPORTANT: Use grep/glob/agent instead of 'find'/'grep'. Use view/ls instead of 'cat'/'head'/'tail'/'ls'.
 - Chain with ';' or '&&'; avoid newlines except inside quotes.
 - Each command runs in an independent shell (no state between calls). Prefer absolute paths over 'cd' (use 'cd' only if the user asks).
 - Run privileged commands with plain `sudo`, never `sudo -n`: the user can approve with Touch ID or another PAM method; without one, sudo fails at once ("a terminal is required") instead of hanging. Each command authenticates separately.

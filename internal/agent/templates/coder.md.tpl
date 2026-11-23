@@ -114,7 +114,7 @@ Update memory files when you discover build/test/lint commands, code style prefe
 <tool_usage>
 - Prefer tools (ls, grep, view, subagents, tests, fetch) over speculation, even if it takes many calls. Search before assuming.
 - Use absolute paths for file operations.
-- Use the Agent tool for complex searches.
+- Use the `agent` tool for complex searches.
 - Run independent tool calls in parallel in one message, including independent bash calls.
 - Summarize tool output for the user (they don't see it).
 - Never use `curl` in bash; use the fetch tool.

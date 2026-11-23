@@ -1609,6 +1609,10 @@ func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model con
 
 	switch wireType {
 	case catwalk.TypeMessages:
+		if providerCfg.ID == string(catwalk.InferenceProviderAnthropic) && providerCfg.OAuthToken != nil {
+			// Claude subscription tokens authenticate as bearer tokens.
+			apiKey = "Bearer " + providerCfg.OAuthToken.AccessToken
+		}
 		return c.buildAnthropicProvider(baseURL, apiKey, headers, providerCfg.ID)
 	case catwalk.TypeResponses:
 		return c.buildOpenaiProvider(baseURL, apiKey, headers, providerCfg.OAuthToken, wireType)

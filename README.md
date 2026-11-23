@@ -1238,3 +1238,9 @@ Part of [Charm](https://charm.land).
 
 <!--prettier-ignore-->
 Charm热爱开源 • Charm loves open source
+
+## Fork notes
+
+This fork adds `crush login claude`, which signs in with a Claude Pro/Max
+subscription. It tracks `charmbracelet/crush` via a daily GitHub Action
+(`.github/workflows/sync-upstream.yml`); merge conflicts open an issue.

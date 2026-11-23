@@ -17,6 +17,7 @@ import (
 	"github.com/charmbracelet/crush/internal/csync"
 	"github.com/charmbracelet/crush/internal/hooks"
 	"github.com/charmbracelet/crush/internal/oauth"
+	"github.com/charmbracelet/crush/internal/oauth/claude"
 	"github.com/charmbracelet/crush/internal/oauth/copilot"
 	"github.com/invopop/jsonschema"
 )
@@ -168,6 +169,21 @@ func (c *ProviderConfig) ToProvider() catwalk.Provider {
 		Name:   c.Name,
 		ID:     catwalk.InferenceProvider(c.ID),
 		Models: c.Models,
+	}
+}
+
+// SetupClaude prepares a provider signed in with a Claude subscription.
+func (c *ProviderConfig) SetupClaude() {
+	c.SystemPromptPrefix = claude.SystemPromptPrefix
+	if c.ExtraHeaders == nil {
+		c.ExtraHeaders = make(map[string]string)
+	}
+	beta := c.ExtraHeaders["anthropic-beta"]
+	if !strings.Contains(beta, claude.BetaHeader) {
+		if beta != "" {
+			beta += ","
+		}
+		c.ExtraHeaders["anthropic-beta"] = beta + claude.BetaHeader
 	}
 }
 

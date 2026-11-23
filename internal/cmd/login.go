@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -10,8 +11,10 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/crush/internal/config"
 	"github.com/charmbracelet/crush/internal/login"
+	"github.com/charmbracelet/crush/internal/oauth/claude"
 	"github.com/charmbracelet/crush/internal/oauth/copilot"
 	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 )
 
@@ -21,13 +24,16 @@ var loginCmd = &cobra.Command{
 	Short:   "Login Crush to a platform",
 	Long: `Login Crush to a specified platform.
 	The platform should be provided as an argument.
-	Available platforms are: hyper, copilot, openai (chatgpt), grok (xai).`,
+	Available platforms are: hyper, copilot, claude (anthropic), openai (chatgpt), grok (xai).`,
 	Example: `
 	# Authenticate with Charm Hyper
 	crush login
 
 	# Authenticate with GitHub Copilot
 	crush login copilot
+
+	# Authenticate with a Claude Pro/Max subscription
+	crush login claude
 
 	# Authenticate with a ChatGPT (OpenAI) account
 	crush login openai
@@ -43,6 +49,8 @@ var loginCmd = &cobra.Command{
 		"copilot",
 		"github",
 		"github-copilot",
+		"claude",
+		"anthropic",
 		"openai",
 		"chatgpt",
 		"grok",
@@ -66,6 +74,8 @@ var loginCmd = &cobra.Command{
 			return loginHyper(ws, force)
 		case "copilot", "github", "github-copilot":
 			return loginCopilot(ws, force)
+		case "claude", "anthropic":
+			return loginClaude(ws, force)
 		case "openai", "chatgpt":
 			return loginOpenAI(ws, force)
 		case "grok", "xai":
@@ -156,6 +166,55 @@ func loginCopilot(ws workspace.Workspace, force bool) error {
 
 	fmt.Println()
 	fmt.Println("You're now authenticated with GitHub Copilot!")
+	return nil
+}
+
+func loginClaude(ws workspace.Workspace, force bool) error {
+	if !force {
+		if cfg := ws.Config(); cfg != nil {
+			if pc, ok := cfg.Providers.Get("anthropic"); ok && pc.OAuthToken != nil {
+				fmt.Println("You are already logged in to Claude with a subscription.")
+				fmt.Println("Use --force to re-authenticate.")
+				return nil
+			}
+		}
+	}
+
+	ctx := getLoginContext()
+	flow, err := claude.NewFlow()
+	if err != nil {
+		return err
+	}
+	url := flow.AuthorizeURL()
+	fmt.Println("Open this URL, sign in to Claude and copy the code shown afterwards:")
+	fmt.Println()
+	lipgloss.Println(lipgloss.NewStyle().Hyperlink(url, "id=claude").Render(url))
+	fmt.Println()
+	_ = browser.OpenURL(url)
+
+	fmt.Print("Paste the code here and press enter: ")
+	lines := make(chan string, 1)
+	go func() {
+		line, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+		lines <- line
+	}()
+	var input string
+	select {
+	case input = <-lines:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	token, err := flow.Exchange(ctx, input)
+	if err != nil {
+		return err
+	}
+	if err := ws.SetProviderAPIKey(config.ScopeGlobal, "anthropic", token); err != nil {
+		return err
+	}
+
+	fmt.Println()
+	fmt.Println("You're now authenticated with your Claude subscription!")
 	return nil
 }
 

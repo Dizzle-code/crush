@@ -18,6 +18,7 @@ import (
 	"github.com/charmbracelet/crush/internal/env"
 	"github.com/charmbracelet/crush/internal/lock"
 	"github.com/charmbracelet/crush/internal/oauth"
+	"github.com/charmbracelet/crush/internal/oauth/claude"
 	"github.com/charmbracelet/crush/internal/oauth/copilot"
 	"github.com/charmbracelet/crush/internal/oauth/grok"
 	"github.com/charmbracelet/crush/internal/oauth/hyper"
@@ -662,6 +663,9 @@ func (s *ConfigStore) SetProviderAPIKey(scope Scope, providerID string, apiKey a
 			if providerID == string(catwalk.InferenceProviderCopilot) {
 				providerConfig.SetupGitHubCopilot()
 			}
+			if providerID == string(catwalk.InferenceProviderAnthropic) {
+				providerConfig.SetupClaude()
+			}
 		}
 	}
 
@@ -1118,6 +1122,8 @@ func (s *ConfigStore) exchangeWithProvider(ctx context.Context, providerID, refr
 	switch providerID {
 	case string(catwalk.InferenceProviderCopilot):
 		return copilot.RefreshToken(ctx, refreshToken)
+	case string(catwalk.InferenceProviderAnthropic):
+		return claude.RefreshToken(ctx, refreshToken)
 	case string(catwalk.InferenceProviderOpenAI):
 		return openai.RefreshToken(ctx, refreshToken)
 	case string(catwalk.InferenceProviderXAI):
@@ -1167,6 +1173,9 @@ func (s *ConfigStore) applyToken(providerConfig ProviderConfig, token *oauth.Tok
 	}
 	if providerID == string(catwalk.InferenceProviderCopilot) {
 		providerConfig.SetupGitHubCopilot()
+	}
+	if providerID == string(catwalk.InferenceProviderAnthropic) {
+		providerConfig.SetupClaude()
 	}
 	s.Config().Providers.Set(providerID, providerConfig)
 	return nil

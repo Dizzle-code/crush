@@ -17,6 +17,20 @@ func TestQuestionParamsUnmarshalJSON_NativeArray(t *testing.T) {
 	require.Equal(t, "OK?", p.Questions[0].Question)
 }
 
+func TestQuestionItemUnmarshalJSON_OptionsAlias(t *testing.T) {
+	t.Parallel()
+	input := `{"questions": [{"type": "single_choice", "question": "Which?", "description": "d", "options": [{"id": "a", "label": "A"}, {"id": "b", "label": "B"}]}]}`
+	var p QuestionParams
+	require.NoError(t, json.Unmarshal([]byte(input), &p))
+	require.Len(t, p.Questions[0].GetChoices(), 2)
+	require.Len(t, p.Questions[0].Choices, 2)
+
+	out, err := json.Marshal(p.Questions[0])
+	require.NoError(t, err)
+	require.NotContains(t, string(out), `"options"`)
+	require.Contains(t, string(out), `"choices"`)
+}
+
 func TestQuestionParamsUnmarshalJSON_StringEncodedArray(t *testing.T) {
 	t.Parallel()
 	// Simulates a model that double-serializes the questions field.

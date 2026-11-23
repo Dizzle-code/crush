@@ -61,7 +61,27 @@ type QuestionItem struct {
 	Question    string           `json:"question" description:"The question text"`
 	Description string           `json:"description" description:"Required markdown description shown below the question"`
 	Choices     []QuestionChoice `json:"choices,omitempty" description:"List of choices"`
-	Options     []QuestionChoice `json:"options,omitempty"` // alias for Choices
+	Options     []QuestionChoice `json:"-"`
+}
+
+// UnmarshalJSON accepts "options" as an alias for "choices" without
+// advertising it in the tool schema.
+func (q *QuestionItem) UnmarshalJSON(data []byte) error {
+	type Alias QuestionItem
+	aux := &struct {
+		Options []QuestionChoice `json:"options"`
+		*Alias
+	}{
+		Alias: (*Alias)(q),
+	}
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	q.Options = aux.Options
+	if len(q.Choices) == 0 {
+		q.Choices = aux.Options
+	}
+	return nil
 }
 
 // GetChoices returns choices, preferring the Choices field over Options.

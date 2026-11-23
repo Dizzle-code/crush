@@ -254,11 +254,15 @@ func DiscoverWithStates(paths []string) ([]*Skill, []*SkillState) {
 			Follow:  true,
 			ToSlash: fastwalk.DefaultToSlash(),
 		}
+		baseClean := filepath.ToSlash(filepath.Clean(base))
 		err := fastwalk.Walk(&conf, base, func(path string, d os.DirEntry, err error) error {
 			if err != nil {
 				slog.Warn("Failed to walk skills path entry", "base", base, "path", path, "error", err)
 				addState("", path, StateError, err)
 				return nil
+			}
+			if d.IsDir() && strings.HasPrefix(d.Name(), ".") && filepath.ToSlash(filepath.Clean(path)) != baseClean {
+				return filepath.SkipDir
 			}
 			if d.IsDir() || d.Name() != SkillFileName {
 				return nil
@@ -402,7 +406,7 @@ func ApproxTokenCount(s string) int {
 	return (len(s) + 3) / 4
 }
 
-// isClaudeAppOnly reports whether a skill was synced from the Claude desktop
+// isClaudeAppOnly reports whether a skill was installed for the Claude desktop
 // or web app and depends on tools that only exist there (browser panes,
 // computer use, connectors, artifacts).
 func isClaudeAppOnly(name, path string) bool {
@@ -410,7 +414,7 @@ func isClaudeAppOnly(name, path string) bool {
 		return false
 	}
 	normalized := strings.ToLower(filepath.ToSlash(path))
-	return strings.Contains(normalized, "/.claude/skills/synced/")
+	return strings.Contains(normalized, "/.claude/skills/")
 }
 
 // Filter removes skills whose names appear in the disabled list.

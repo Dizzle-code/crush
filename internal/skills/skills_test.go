@@ -289,14 +289,21 @@ func TestDiscoverSkipsClaudeAppOnlySkills(t *testing.T) {
 	}
 	writeSkill(filepath.Join("synced", "abc_def"), "computer-use")
 	writeSkill(filepath.Join("synced", "abc_def"), "pdf")
+	writeSkill(filepath.Join("synced", ".bucket-abc"), "xlsx")
+	writeSkill(".trash", "old-skill")
 	writeSkill("own", "morning")
+	writeSkill("own", "reviewer")
 
-	found := Discover([]string{base})
+	other := filepath.Join(t.TempDir(), "skills", "morning")
+	require.NoError(t, os.MkdirAll(other, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(other, "SKILL.md"), []byte("---\nname: morning\ndescription: Test skill.\n---\n"), 0o644))
+
+	found := Discover([]string{base, filepath.Dir(other)})
 	names := make([]string, 0, len(found))
 	for _, s := range found {
 		names = append(names, s.Name)
 	}
-	require.ElementsMatch(t, []string{"pdf", "morning"}, names)
+	require.ElementsMatch(t, []string{"pdf", "reviewer", "morning"}, names)
 }
 
 func TestDiscoverEmptyDir(t *testing.T) {

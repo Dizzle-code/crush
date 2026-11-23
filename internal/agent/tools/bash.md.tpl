@@ -6,7 +6,7 @@ mvdan/sh interpreter (Bash-compatible, incl. Windows). Use forward slashes: "ls 
 
 <usage_notes>
 - `command` required, `working_dir` optional. Each call is an independent shell (no state); prefer absolute paths over 'cd'.
-- Use grep/glob/agent instead of 'find'/'grep', and view/ls instead of 'cat'/'head'/'tail'/'ls'.
+- Use the grep/glob tools instead of 'find'/'grep', and view/ls instead of 'cat'/'head'/'tail'/'ls'.
 - Chain with ';' or '&&'; avoid newlines outside quotes. Verify parent directories with ls before creating files.
 - Dangerous commands ({{ .BannedCommands }}) need user approval in normal mode, are blocked in YOLO mode and auto-approved in Sysadmin mode. Safe read-only commands run without prompts.
 - Output over {{ .MaxOutputLength }} characters is truncated; the marker names a file with the full output (read it with view).

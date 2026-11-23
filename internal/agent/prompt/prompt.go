@@ -282,7 +282,7 @@ func (p *Prompt) promptData(ctx context.Context, provider, model string, store *
 		WorkingDir:    filepath.ToSlash(workingDir),
 		IsGitRepo:     isGit,
 		Platform:      platform,
-		Date:          p.now().Format("1/2/2006"),
+		Date:          p.now().Format("2006-01-02"),
 		AvailSkillXML: availSkillXML,
 		CanWrite:      p.canWrite,
 		ToolNames:     p.toolNames,

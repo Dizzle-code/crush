@@ -4,10 +4,10 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"strings"
+	"text/template"
 	"time"
 
 	"charm.land/fantasy"

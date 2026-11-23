@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"html/template"
 	"os/exec"
 	"testing"
+	"text/template"
 
 	"charm.land/fantasy"
 )

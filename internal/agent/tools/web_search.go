@@ -3,9 +3,9 @@ package tools
 import (
 	"context"
 	_ "embed"
-	"html/template"
 	"log/slog"
 	"net/http"
+	"text/template"
 	"time"
 
 	"charm.land/fantasy"

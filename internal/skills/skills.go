@@ -31,6 +31,16 @@ var (
 	namePattern    = regexp.MustCompile(`^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*$`)
 	promptReplacer = strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&apos;")
 
+	claudeAppOnlySkills = map[string]bool{
+		"built-in-browser": true,
+		"chrome-browser":   true,
+		"computer-use":     true,
+		"docs":             true,
+		"google-workspace": true,
+		"import-memory":    true,
+		"morning":          true,
+	}
+
 	latestStates   []*SkillState
 	latestStatesMu sync.RWMutex
 )
@@ -271,6 +281,10 @@ func DiscoverWithStates(paths []string) ([]*Skill, []*SkillState) {
 				addState(skill.Name, path, StateError, err)
 				return nil
 			}
+			if isClaudeAppOnly(skill.Name, path) {
+				slog.Debug("Skipping skill that needs Claude app tools", "name", skill.Name, "path", path)
+				return nil
+			}
 			slog.Debug("Successfully loaded skill", "name", skill.Name, "path", path)
 			mu.Lock()
 			skills = append(skills, skill)
@@ -386,6 +400,17 @@ func ApproxTokenCount(s string) int {
 		return 0
 	}
 	return (len(s) + 3) / 4
+}
+
+// isClaudeAppOnly reports whether a skill was synced from the Claude desktop
+// or web app and depends on tools that only exist there (browser panes,
+// computer use, connectors, artifacts).
+func isClaudeAppOnly(name, path string) bool {
+	if !claudeAppOnlySkills[name] {
+		return false
+	}
+	normalized := strings.ToLower(filepath.ToSlash(path))
+	return strings.Contains(normalized, "/.claude/skills/synced/")
 }
 
 // Filter removes skills whose names appear in the disabled list.

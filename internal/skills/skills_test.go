@@ -278,6 +278,27 @@ description: Name doesn't match directory.
 	require.True(t, names["skill-two"])
 }
 
+func TestDiscoverSkipsClaudeAppOnlySkills(t *testing.T) {
+	t.Parallel()
+
+	base := filepath.Join(t.TempDir(), ".claude", "skills")
+	writeSkill := func(dir, name string) {
+		skillDir := filepath.Join(base, dir, name)
+		require.NoError(t, os.MkdirAll(skillDir, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte("---\nname: "+name+"\ndescription: Test skill.\n---\n"), 0o644))
+	}
+	writeSkill(filepath.Join("synced", "abc_def"), "computer-use")
+	writeSkill(filepath.Join("synced", "abc_def"), "pdf")
+	writeSkill("own", "morning")
+
+	found := Discover([]string{base})
+	names := make([]string, 0, len(found))
+	for _, s := range found {
+		names = append(names, s.Name)
+	}
+	require.ElementsMatch(t, []string{"pdf", "morning"}, names)
+}
+
 func TestDiscoverEmptyDir(t *testing.T) {
 	t.Parallel()
 
